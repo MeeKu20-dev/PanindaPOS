@@ -1,0 +1,12 @@
+.app-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* RIGHT SIDE CONTENT */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  background: #f7f7f7;
+}

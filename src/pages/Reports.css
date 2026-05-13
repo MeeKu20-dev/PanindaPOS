@@ -1,0 +1,130 @@
+/* PAGE */
+.reports-container {
+  padding: 25px;
+  background: #f5f7f9;
+  min-height: 100vh;
+}
+
+/* TITLE */
+.reports-container h2 {
+  margin-bottom: 20px;
+}
+
+/* GRID LAYOUT */
+.reports-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* CARD */
+.report-card {
+  flex: 1;
+  min-width: 250px;
+  background: #ffffff; /* 👈 white */
+  padding: 25px;
+  border-radius: 16px;
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  transition: 0.2s;
+}
+
+/* HOVER */
+.report-card:hover {
+  transform: translateY(-3px);
+}
+
+/* CARD */
+.report-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+
+  width: 280px;
+  transition: 0.2s;
+}
+
+/* HOVER */
+.report-card:hover {
+  transform: translateY(-2px);
+}
+
+/* LEFT ICON */
+/* LEFT ICON (no background) */
+.card-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ICON STYLE */
+.card-left svg {
+  font-size: 50px; /* slightly bigger since no container */
+  color: #2e7d32;
+}
+
+/* RIGHT CONTENT */
+.card-right h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* AMOUNT */
+.amount {
+  font-size: 26px;
+  font-weight: 700;
+  margin-top: 5px;
+  color: #2e7d32;
+}
+
+/* GRID LAYOUT */
+.reports-grid {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+  align-items: flex-start;
+}
+
+/* LEFT (HISTORY) */
+.history-card {
+  flex: 2;
+  background: #fff;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+/* RIGHT (LOW STOCKS) */
+.lowstock-card {
+  flex: 1;
+  background: #fff;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+/* LOW STOCK LIST */
+.lowstock-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lowstock-card li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+/* LOW STOCK COLOR */
+.low {
+  color: #d32f2f;
+  font-weight: bold;
+}

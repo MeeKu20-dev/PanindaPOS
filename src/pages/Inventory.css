@@ -1,0 +1,163 @@
+/* PAGE CONTAINER */
+.inventory-container {
+  padding: 20px;
+  background: #f7f7f7;
+  min-height: 100vh;
+}
+
+/* HEADER */
+/* HEADER LAYOUT */
+.inventory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.inventory-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* SEARCH BAR */
+.search {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  outline: none;
+  width: 200px;
+}
+
+/* SEARCH FOCUS */
+.search:focus {
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+}
+
+/* FILTER */
+.filter {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  outline: none;
+  cursor: pointer;
+}
+
+/* ADD BUTTON */
+.add-btn {
+  background: #2e7d32;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.add-btn:hover {
+  background: #1b5e20;
+}
+
+/* CARD WRAPPER */
+.inventory-card {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+/* HEADER ROW */
+th {
+  background: #f1f1f1;
+  font-weight: 600;
+}
+
+/* STATUS COLORS */
+.available {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.low {
+  color: #e65100;
+  font-weight: 500;
+}
+
+/* ROW HOVER */
+tr:hover {
+  background: #f9f9f9;
+}
+
+/* ACTION BUTTONS */
+.edit-btn {
+  background: #1976d2;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  margin-right: 5px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  background: #0d47a1;
+}
+
+.delete-btn {
+  background: #d32f2f;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #9a0007;
+}
+
+/* INPUTS + SELECT */
+.modal input,
+.modal select {
+  width: 85%; /* consistent smaller width */
+  padding: 12px 14px;
+  margin: 8px auto; /* spacing between fields */
+  display: block;
+
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  outline: none;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+/* FOCUS EFFECT */
+.modal input:focus,
+.modal select:focus {
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15);
+}
+
+.modal label {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+}
