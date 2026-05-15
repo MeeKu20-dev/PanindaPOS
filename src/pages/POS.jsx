@@ -12,7 +12,7 @@ export default function POS() {
   );
 
   const [showConfirm, setShowConfirm] = useState(false);
-  const [pendingCheckout, setPendingCheckout] = useState(null);
+
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [change, setChange] = useState(null);
@@ -63,6 +63,55 @@ export default function POS() {
     }
   };
 
+  const saveTransaction = async () => {
+    const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+    const paid = Number(amount);
+    const changeValue = paid - total;
+
+    if (paid < total) {
+      alert("Insufficient payment");
+      return;
+    }
+
+    const { data: trxData, error: trxError } = await supabase
+      .from("transactions")
+      .insert([
+        {
+          total,
+          payment_method: paymentMethod,
+          amount_paid: paid,
+          change: changeValue,
+        },
+      ])
+      .select()
+      .single();
+
+    if (trxError) {
+      console.log(trxError);
+      return;
+    }
+
+    const transactionItems = cart.map((item) => ({
+      transaction_id: trxData.id,
+      product_name: item.name,
+      quantity: item.qty,
+      price: item.price,
+    }));
+
+    const { error: itemError } = await supabase
+      .from("transaction_items")
+      .insert(transactionItems);
+
+    if (itemError) {
+      console.log(itemError);
+      return;
+    }
+
+    setCart([]);
+    setAmount("");
+    setChange(changeValue);
+    setShowConfirm(false);
+  };
   // CALCULATE TOTAL
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
@@ -156,12 +205,6 @@ export default function POS() {
                   return;
                 }
 
-                setPendingCheckout({
-                  amount: Number(amount),
-                  paymentMethod,
-                  change: calculatedChange,
-                });
-
                 setShowConfirm(true);
               }}
             >
@@ -189,14 +232,7 @@ export default function POS() {
                 <button
                   className="confirm-btn"
                   onClick={() => {
-                    if (!pendingCheckout) return;
-
-                    setCart([]);
-                    setAmount("");
-                    setChange(pendingCheckout.change);
-
-                    setShowConfirm(false);
-                    setPendingCheckout(null);
+                    saveTransaction();
                   }}
                 >
                   Confirm

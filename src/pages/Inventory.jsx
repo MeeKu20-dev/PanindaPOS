@@ -95,7 +95,7 @@ export default function Inventory() {
       editId,
       product: newProduct,
     });
-
+    setShowAddModal(false);
     setShowConfirm(true);
   };
 
@@ -232,6 +232,8 @@ export default function Inventory() {
               <option value="All">All</option>
               <option value="Food">Food</option>
               <option value="Drinks">Drinks</option>
+              <option value="Drinks">Drinks</option>
+              <option value="Drinks">Drinks</option>
             </select>
 
             <button
@@ -306,7 +308,7 @@ export default function Inventory() {
               <h3>Confirm Save</h3>
 
               <p style={{ marginTop: "10px", color: "#555" }}>
-                Do you want to proceed with this transaction?
+                Do you want to proceed with this action?
               </p>
 
               <div className="modal-actions">

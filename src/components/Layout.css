@@ -1,12 +1,20 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden; /* stop body from scrolling */
+}
+
 .app-layout {
   display: flex;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
 }
 
-/* RIGHT SIDE CONTENT */
 .main-content {
   flex: 1;
+  min-height: 0; /* required for flex + overflow */
   overflow-y: auto;
   background: #f7f7f7;
 }
