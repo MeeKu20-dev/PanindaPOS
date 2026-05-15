@@ -1,5 +1,6 @@
 import Layout from "../components/Layout";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 import "./Inventory.css";
 
 export default function Inventory() {
@@ -8,34 +9,15 @@ export default function Inventory() {
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
 
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      productName: "Coke",
-      unitPrice: 10,
-      sellingPrice: 15,
-      quantity: 50,
-      category: "Drinks",
-    },
-    {
-      id: 2,
-      productName: "Bread",
-      unitPrice: 5,
-      sellingPrice: 10,
-      quantity: 20,
-      category: "Food",
-    },
-    {
-      id: 3,
-      productName: "Noodles",
-      unitPrice: 8,
-      sellingPrice: 12,
-      quantity: 35,
-      category: "Food",
-    },
-  ]);
+  const [products, setProducts] = useState([]);
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [errors, setErrors] = useState({});
+
+  const [pendingAction, setPendingAction] = useState(null);
 
   const [newProduct, setNewProduct] = useState({
     productName: "",
@@ -45,6 +27,31 @@ export default function Inventory() {
     category: "",
   });
 
+  // LOAD PRODUCTS
+  useEffect(() => {
+    const load = async () => {
+      const { data, error } = await supabase.from("products").select("*");
+
+      if (error) {
+        console.log(error);
+        return;
+      }
+
+      const formatted = (data || []).map((item) => ({
+        id: item.id,
+        productName: item.product_name,
+        quantity: item.quantity,
+        unitPrice: item.unit_price,
+        sellingPrice: item.selling_price,
+        category: item.category,
+      }));
+
+      setProducts(formatted);
+    };
+
+    load();
+  }, []);
+
   const handleChange = (e) => {
     setNewProduct({
       ...newProduct,
@@ -52,37 +59,71 @@ export default function Inventory() {
     });
   };
 
+  // OPEN SAVE CONFIRM
   const handleSaveProduct = () => {
-    if (
-      !newProduct.productName ||
-      !newProduct.quantity ||
-      !newProduct.unitPrice ||
-      !newProduct.sellingPrice ||
-      !newProduct.category
-    ) {
-      alert("Please fill all fields");
+    let newErrors = {};
+
+    if (!newProduct.productName.trim()) {
+      newErrors.productName = "Product name is required";
+    }
+
+    if (!newProduct.quantity) {
+      newErrors.quantity = "Quantity is required";
+    }
+
+    if (!newProduct.unitPrice) {
+      newErrors.unitPrice = "Unit price is required";
+    }
+
+    if (!newProduct.sellingPrice) {
+      newErrors.sellingPrice = "Selling price is required";
+    }
+
+    if (!newProduct.category) {
+      newErrors.category = "Category is required";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    const formattedProduct = {
-      ...newProduct,
-      quantity: Number(newProduct.quantity),
-      unitPrice: Number(newProduct.unitPrice),
-      sellingPrice: Number(newProduct.sellingPrice),
+    setErrors({});
+
+    setPendingAction({
+      isEdit,
+      editId,
+      product: newProduct,
+    });
+
+    setShowConfirm(true);
+  };
+
+  // CONFIRM SAVE (ADD / EDIT)
+  const confirmSave = async () => {
+    const p = pendingAction.product;
+
+    const payload = {
+      product_name: p.productName,
+      quantity: Number(p.quantity),
+      unit_price: Number(p.unitPrice),
+      selling_price: Number(p.sellingPrice),
+      category: p.category,
     };
 
-    if (isEdit) {
-      setProducts(
-        products.map((p) =>
-          p.id === editId ? { ...p, ...formattedProduct } : p,
-        ),
-      );
+    if (pendingAction.isEdit) {
+      await supabase
+        .from("products")
+        .update(payload)
+        .eq("id", pendingAction.editId);
     } else {
-      setProducts([...products, { id: Date.now(), ...formattedProduct }]);
+      await supabase.from("products").insert([payload]);
     }
 
+    setShowConfirm(false);
     setShowAddModal(false);
     setIsEdit(false);
+    setPendingAction(null);
 
     setNewProduct({
       productName: "",
@@ -91,12 +132,56 @@ export default function Inventory() {
       sellingPrice: "",
       category: "",
     });
+
+    // refresh
+    const { data } = await supabase.from("products").select("*");
+
+    const formatted = (data || []).map((item) => ({
+      id: item.id,
+      productName: item.product_name,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      sellingPrice: item.selling_price,
+      category: item.category,
+    }));
+
+    setProducts(formatted);
   };
 
-  const handleDelete = (id) => {
-    if (confirm("Delete this product?")) {
-      setProducts(products.filter((p) => p.id !== id));
+  // OPEN DELETE MODAL
+  const openDeleteConfirm = (id) => {
+    setDeleteId(id);
+    setShowDeleteConfirm(true);
+  };
+
+  // CONFIRM DELETE
+  const handleDelete = async () => {
+    const { error } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", deleteId);
+
+    if (error) {
+      console.log(error);
+      return;
     }
+
+    setShowDeleteConfirm(false);
+    setDeleteId(null);
+
+    // refresh
+    const { data } = await supabase.from("products").select("*");
+
+    const formatted = (data || []).map((item) => ({
+      id: item.id,
+      productName: item.product_name,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      sellingPrice: item.selling_price,
+      category: item.category,
+    }));
+
+    setProducts(formatted);
   };
 
   const handleEdit = (product) => {
@@ -116,7 +201,6 @@ export default function Inventory() {
 
   const filtered = products.filter((p) => {
     const matchCategory = filter === "All" || p.category === filter;
-
     const matchSearch = p.productName
       .toLowerCase()
       .includes(search.toLowerCase());
@@ -204,7 +288,7 @@ export default function Inventory() {
 
                     <button
                       className="delete-btn"
-                      onClick={() => handleDelete(p.id)}
+                      onClick={() => openDeleteConfirm(p.id)}
                     >
                       Delete
                     </button>
@@ -215,53 +299,102 @@ export default function Inventory() {
           </table>
         </div>
 
-        {/* MODAL */}
+        {/* SAVE MODAL */}
+        {showConfirm && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <h3>Confirm Save</h3>
+
+              <p style={{ marginTop: "10px", color: "#555" }}>
+                Do you want to proceed with this transaction?
+              </p>
+
+              <div className="modal-actions">
+                <button onClick={() => setShowConfirm(false)}>Cancel</button>
+
+                <button onClick={confirmSave}>Confirm</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* DELETE MODAL */}
+        {showDeleteConfirm && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <h3>Delete Product</h3>
+
+              <p style={{ marginTop: "10px", color: "#555" }}>
+                Are you sure you want to delete this product? This action cannot
+                be undone.
+              </p>
+
+              <div className="modal-actions">
+                <button onClick={() => setShowDeleteConfirm(false)}>
+                  Cancel
+                </button>
+
+                <button
+                  onClick={handleDelete}
+                  style={{ background: "#e74c3c", color: "white" }}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ADD / EDIT MODAL */}
         {showAddModal && (
           <div className="modal-overlay">
             <div className="modal">
               <h3>{isEdit ? "Edit Product" : "Add Product"}</h3>
 
-              {/* PRODUCT NAME */}
               <label>Product Name</label>
               <input
                 type="text"
                 name="productName"
-                placeholder="Enter product name"
                 value={newProduct.productName}
                 onChange={handleChange}
               />
+              {errors.productName && (
+                <p className="error-text">{errors.productName}</p>
+              )}
 
-              {/* QUANTITY (STOCK) */}
-              <label>Quantity (Stock)</label>
+              <label>Quantity</label>
               <input
                 type="number"
                 name="quantity"
-                placeholder="Enter stock quantity"
                 value={newProduct.quantity}
                 onChange={handleChange}
               />
+              {errors.quantity && (
+                <p className="error-text">{errors.quantity}</p>
+              )}
 
-              {/* UNIT PRICE */}
               <label>Unit Price</label>
               <input
                 type="number"
                 name="unitPrice"
-                placeholder="Enter unit price"
                 value={newProduct.unitPrice}
                 onChange={handleChange}
               />
+              {errors.unitPrice && (
+                <p className="error-text">{errors.unitPrice}</p>
+              )}
 
-              {/* SELLING PRICE */}
               <label>Selling Price</label>
               <input
                 type="number"
                 name="sellingPrice"
-                placeholder="Enter selling price"
                 value={newProduct.sellingPrice}
                 onChange={handleChange}
               />
+              {errors.sellingPrice && (
+                <p className="error-text">{errors.sellingPrice}</p>
+              )}
 
-              {/* CATEGORY */}
               <label>Category</label>
               <select
                 name="category"
@@ -272,8 +405,34 @@ export default function Inventory() {
                 <option value="Drinks">Drinks</option>
               </select>
 
+              {errors.category && (
+                <p className="error-text">{errors.category}</p>
+              )}
+
               <div className="modal-actions">
-                <button onClick={() => setShowAddModal(false)}>Cancel</button>
+                <button
+                  onClick={() => {
+                    setShowAddModal(false);
+
+                    setErrors({
+                      productName: "",
+                      quantity: "",
+                      unitPrice: "",
+                      sellingPrice: "",
+                      category: "",
+                    });
+
+                    setNewProduct({
+                      productName: "",
+                      quantity: "",
+                      unitPrice: "",
+                      sellingPrice: "",
+                      category: "Food",
+                    });
+                  }}
+                >
+                  Cancel
+                </button>
 
                 <button onClick={handleSaveProduct}>
                   {isEdit ? "Update" : "Add"}

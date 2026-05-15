@@ -1,22 +1,10 @@
+import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
-import { useState } from "react";
+import { supabase } from "../lib/supabase";
 import "./POS.css";
 
 export default function POS() {
-  const products = [
-    { id: 1, name: "Coke", price: 15 },
-    { id: 2, name: "Bread", price: 10 },
-    { id: 3, name: "Noodles", price: 12 },
-    { id: 4, name: "Coke", price: 15 },
-    { id: 5, name: "Bread", price: 10 },
-    { id: 6, name: "Noodles", price: 12 },
-    { id: 7, name: "Coke", price: 15 },
-    { id: 8, name: "Bread", price: 10 },
-    { id: 9, name: "Noodles", price: 12 },
-    { id: 10, name: "Coke", price: 15 },
-    { id: 11, name: "Bread", price: 10 },
-    { id: 12, name: "Noodles", price: 12 },
-  ];
+  const [products, setProducts] = useState([]);
 
   const [search, setSearch] = useState("");
   const filteredProducts = products.filter((p) =>
@@ -30,9 +18,37 @@ export default function POS() {
   const [change, setChange] = useState(null);
   const [cart, setCart] = useState([]);
 
+  useEffect(() => {
+    const loadProducts = async () => {
+      const { data, error } = await supabase.from("products").select("*");
+
+      if (error) {
+        console.log(error);
+        return;
+      }
+
+      const formatted = (data || []).map((item) => ({
+        id: item.id,
+        name: item.product_name,
+        price: item.selling_price,
+        stock: item.quantity,
+        category: item.category,
+      }));
+
+      setProducts(formatted);
+    };
+
+    loadProducts();
+  }, []);
+
   // ADD TO CART
   const addToCart = (product) => {
-    setChange(null); // 👈 reset change
+    if (product.stock <= 0) {
+      alert("Out of stock");
+      return;
+    }
+
+    setChange(null);
 
     const existing = cart.find((item) => item.id === product.id);
 
