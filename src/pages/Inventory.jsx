@@ -1,4 +1,3 @@
-import Layout from "../components/Layout";
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import "./Inventory.css";
@@ -209,241 +208,235 @@ export default function Inventory() {
   });
 
   return (
-    <Layout>
-      <div className="inventory-container">
-        {/* HEADER */}
-        <div className="inventory-header">
-          <h2>Inventory</h2>
+    <div className="inventory-container">
+      {/* HEADER */}
+      <div className="inventory-header">
+        <h2>Inventory</h2>
 
-          <div className="inventory-controls">
+        <div className="inventory-controls">
+          <input
+            type="text"
+            placeholder="Search product..."
+            className="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+          <select
+            className="filter"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            <option value="All">All</option>
+            <option value="Food">Food</option>
+            <option value="Drinks">Drinks</option>
+            <option value="Drinks">Drinks</option>
+            <option value="Drinks">Drinks</option>
+          </select>
+
+          <button
+            className="add-btn"
+            onClick={() => {
+              setIsEdit(false);
+              setNewProduct({
+                productName: "",
+                quantity: "",
+                unitPrice: "",
+                sellingPrice: "",
+                category: "Food",
+              });
+              setShowAddModal(true);
+            }}
+          >
+            + Add Product
+          </button>
+        </div>
+      </div>
+
+      {/* TABLE */}
+      <div className="inventory-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Unit Price</th>
+              <th>Selling Price</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {filtered.map((p) => (
+              <tr key={p.id}>
+                <td>{p.productName}</td>
+                <td>{p.category}</td>
+                <td>₱{p.unitPrice}</td>
+                <td>₱{p.sellingPrice}</td>
+                <td>{p.quantity}</td>
+
+                <td className={p.quantity > 20 ? "available" : "low"}>
+                  {p.quantity > 20 ? "Available" : "Low Stock"}
+                </td>
+
+                <td>
+                  <button className="edit-btn" onClick={() => handleEdit(p)}>
+                    Edit
+                  </button>
+
+                  <button
+                    className="delete-btn"
+                    onClick={() => openDeleteConfirm(p.id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* SAVE MODAL */}
+      {showConfirm && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Confirm Save</h3>
+
+            <p style={{ marginTop: "10px", color: "#555" }}>
+              Do you want to proceed with this action?
+            </p>
+
+            <div className="modal-actions">
+              <button onClick={() => setShowConfirm(false)}>Cancel</button>
+
+              <button onClick={confirmSave}>Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE MODAL */}
+      {showDeleteConfirm && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Delete Product</h3>
+
+            <p style={{ marginTop: "10px", color: "#555" }}>
+              Are you sure you want to delete this product? This action cannot
+              be undone.
+            </p>
+
+            <div className="modal-actions">
+              <button onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </button>
+
+              <button
+                onClick={handleDelete}
+                style={{ background: "#e74c3c", color: "white" }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADD / EDIT MODAL */}
+      {showAddModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>{isEdit ? "Edit Product" : "Add Product"}</h3>
+
+            <label>Product Name</label>
             <input
               type="text"
-              placeholder="Search product..."
-              className="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              name="productName"
+              value={newProduct.productName}
+              onChange={handleChange}
             />
+            {errors.productName && (
+              <p className="error-text">{errors.productName}</p>
+            )}
 
+            <label>Quantity</label>
+            <input
+              type="number"
+              name="quantity"
+              value={newProduct.quantity}
+              onChange={handleChange}
+            />
+            {errors.quantity && <p className="error-text">{errors.quantity}</p>}
+
+            <label>Unit Price</label>
+            <input
+              type="number"
+              name="unitPrice"
+              value={newProduct.unitPrice}
+              onChange={handleChange}
+            />
+            {errors.unitPrice && (
+              <p className="error-text">{errors.unitPrice}</p>
+            )}
+
+            <label>Selling Price</label>
+            <input
+              type="number"
+              name="sellingPrice"
+              value={newProduct.sellingPrice}
+              onChange={handleChange}
+            />
+            {errors.sellingPrice && (
+              <p className="error-text">{errors.sellingPrice}</p>
+            )}
+
+            <label>Category</label>
             <select
-              className="filter"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
+              name="category"
+              value={newProduct.category}
+              onChange={handleChange}
             >
-              <option value="All">All</option>
               <option value="Food">Food</option>
-              <option value="Drinks">Drinks</option>
-              <option value="Drinks">Drinks</option>
               <option value="Drinks">Drinks</option>
             </select>
 
-            <button
-              className="add-btn"
-              onClick={() => {
-                setIsEdit(false);
-                setNewProduct({
-                  productName: "",
-                  quantity: "",
-                  unitPrice: "",
-                  sellingPrice: "",
-                  category: "Food",
-                });
-                setShowAddModal(true);
-              }}
-            >
-              + Add Product
-            </button>
-          </div>
-        </div>
+            {errors.category && <p className="error-text">{errors.category}</p>}
 
-        {/* TABLE */}
-        <div className="inventory-card">
-          <table>
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Category</th>
-                <th>Unit Price</th>
-                <th>Selling Price</th>
-                <th>Stock</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+            <div className="modal-actions">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
 
-            <tbody>
-              {filtered.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.productName}</td>
-                  <td>{p.category}</td>
-                  <td>₱{p.unitPrice}</td>
-                  <td>₱{p.sellingPrice}</td>
-                  <td>{p.quantity}</td>
+                  setErrors({
+                    productName: "",
+                    quantity: "",
+                    unitPrice: "",
+                    sellingPrice: "",
+                    category: "",
+                  });
 
-                  <td className={p.quantity > 20 ? "available" : "low"}>
-                    {p.quantity > 20 ? "Available" : "Low Stock"}
-                  </td>
-
-                  <td>
-                    <button className="edit-btn" onClick={() => handleEdit(p)}>
-                      Edit
-                    </button>
-
-                    <button
-                      className="delete-btn"
-                      onClick={() => openDeleteConfirm(p.id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* SAVE MODAL */}
-        {showConfirm && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <h3>Confirm Save</h3>
-
-              <p style={{ marginTop: "10px", color: "#555" }}>
-                Do you want to proceed with this action?
-              </p>
-
-              <div className="modal-actions">
-                <button onClick={() => setShowConfirm(false)}>Cancel</button>
-
-                <button onClick={confirmSave}>Confirm</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* DELETE MODAL */}
-        {showDeleteConfirm && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <h3>Delete Product</h3>
-
-              <p style={{ marginTop: "10px", color: "#555" }}>
-                Are you sure you want to delete this product? This action cannot
-                be undone.
-              </p>
-
-              <div className="modal-actions">
-                <button onClick={() => setShowDeleteConfirm(false)}>
-                  Cancel
-                </button>
-
-                <button
-                  onClick={handleDelete}
-                  style={{ background: "#e74c3c", color: "white" }}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ADD / EDIT MODAL */}
-        {showAddModal && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <h3>{isEdit ? "Edit Product" : "Add Product"}</h3>
-
-              <label>Product Name</label>
-              <input
-                type="text"
-                name="productName"
-                value={newProduct.productName}
-                onChange={handleChange}
-              />
-              {errors.productName && (
-                <p className="error-text">{errors.productName}</p>
-              )}
-
-              <label>Quantity</label>
-              <input
-                type="number"
-                name="quantity"
-                value={newProduct.quantity}
-                onChange={handleChange}
-              />
-              {errors.quantity && (
-                <p className="error-text">{errors.quantity}</p>
-              )}
-
-              <label>Unit Price</label>
-              <input
-                type="number"
-                name="unitPrice"
-                value={newProduct.unitPrice}
-                onChange={handleChange}
-              />
-              {errors.unitPrice && (
-                <p className="error-text">{errors.unitPrice}</p>
-              )}
-
-              <label>Selling Price</label>
-              <input
-                type="number"
-                name="sellingPrice"
-                value={newProduct.sellingPrice}
-                onChange={handleChange}
-              />
-              {errors.sellingPrice && (
-                <p className="error-text">{errors.sellingPrice}</p>
-              )}
-
-              <label>Category</label>
-              <select
-                name="category"
-                value={newProduct.category}
-                onChange={handleChange}
+                  setNewProduct({
+                    productName: "",
+                    quantity: "",
+                    unitPrice: "",
+                    sellingPrice: "",
+                    category: "Food",
+                  });
+                }}
               >
-                <option value="Food">Food</option>
-                <option value="Drinks">Drinks</option>
-              </select>
+                Cancel
+              </button>
 
-              {errors.category && (
-                <p className="error-text">{errors.category}</p>
-              )}
-
-              <div className="modal-actions">
-                <button
-                  onClick={() => {
-                    setShowAddModal(false);
-
-                    setErrors({
-                      productName: "",
-                      quantity: "",
-                      unitPrice: "",
-                      sellingPrice: "",
-                      category: "",
-                    });
-
-                    setNewProduct({
-                      productName: "",
-                      quantity: "",
-                      unitPrice: "",
-                      sellingPrice: "",
-                      category: "Food",
-                    });
-                  }}
-                >
-                  Cancel
-                </button>
-
-                <button onClick={handleSaveProduct}>
-                  {isEdit ? "Update" : "Add"}
-                </button>
-              </div>
+              <button onClick={handleSaveProduct}>
+                {isEdit ? "Update" : "Add"}
+              </button>
             </div>
           </div>
-        )}
-      </div>
-    </Layout>
+        </div>
+      )}
+    </div>
   );
 }

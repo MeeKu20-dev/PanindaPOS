@@ -36,32 +36,21 @@ export default function Login() {
 
     const user = data.user;
 
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("display_name, role")
       .eq("id", user.id)
       .single();
 
-    setLoading(false);
+    localStorage.setItem(
+      "userProfile",
+      JSON.stringify({
+        displayName: profile.display_name,
+        role: profile.role,
+      }),
+    );
 
-    if (profileError) {
-      setError("Could not load user profile");
-      await supabase.auth.signOut();
-      return;
-    }
-
-    const role = profile?.role;
-
-    if (role !== "admin" && role !== "cashier") {
-      setError("No role assigned to this user");
-      await supabase.auth.signOut();
-      sessionStorage.removeItem("role");
-      return;
-    }
-
-    sessionStorage.setItem("role", role);
-
-    if (role === "admin") {
+    if (profile.role === "admin") {
       navigate("/inventory");
     } else {
       navigate("/pos");

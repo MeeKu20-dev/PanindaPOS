@@ -1,31 +1,38 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { getCurrentUserRole } from "../lib/auth";
+import { FaUserCircle } from "react-icons/fa";
 import "./Sidebar.css";
 
 export default function Sidebar() {
   const navigate = useNavigate();
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [role, setRole] = useState(() => sessionStorage.getItem("role"));
+  const [role, setRole] = useState(null);
+  const [displayName, setDisplayName] = useState("");
 
   useEffect(() => {
-    const loadRole = async () => {
-      const userRole = await getCurrentUserRole();
-      if (userRole) {
-        setRole(userRole);
-        sessionStorage.setItem("role", userRole);
-      }
+    const loadUser = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name, role")
+        .eq("id", user.id)
+        .single();
+
+      setDisplayName(profile?.display_name || "User");
+      setRole(profile?.role || null);
     };
 
-    loadRole();
+    loadUser();
   }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    sessionStorage.removeItem("role");
-    setRole(null);
     navigate("/");
   };
 
@@ -38,9 +45,29 @@ export default function Sidebar() {
               <span className="logo">🛍️</span>
               <span className="app-name">PanindaPOS</span>
             </div>
+
+            <div className="user-info">
+              <div className="user-avatar">
+                <FaUserCircle />
+              </div>
+
+              <div className="user-details">
+                <div className="user-name">{displayName}</div>
+                <div className="user-role">{role}</div>
+              </div>
+            </div>
           </li>
 
-          {(role === "cashier" || role === "admin") && (
+          {role === "cashier" && (
+            <li>
+              <NavLink to="/pos" className="menu-item">
+                <span className="icon">💵</span>
+                <span className="title">Point of Sales</span>
+              </NavLink>
+            </li>
+          )}
+
+          {role === "admin" && (
             <>
               <li>
                 <NavLink to="/pos" className="menu-item">
@@ -50,20 +77,16 @@ export default function Sidebar() {
               </li>
 
               <li>
-                <NavLink to="/reports" className="menu-item">
-                  <span className="icon">📊</span>
-                  <span className="title">Reports</span>
-                </NavLink>
-              </li>
-            </>
-          )}
-
-          {role === "admin" && (
-            <>
-              <li>
                 <NavLink to="/inventory" className="menu-item">
                   <span className="icon">📦</span>
                   <span className="title">Inventory</span>
+                </NavLink>
+              </li>
+
+              <li>
+                <NavLink to="/reports" className="menu-item">
+                  <span className="icon">📊</span>
+                  <span className="title">Reports</span>
                 </NavLink>
               </li>
             </>
@@ -91,10 +114,7 @@ export default function Sidebar() {
               </button>
 
               <button
-                onClick={() => {
-                  setShowLogoutConfirm(false);
-                  handleSignOut();
-                }}
+                onClick={handleSignOut}
                 style={{ background: "#d32f2f", color: "white" }}
               >
                 Sign Out
