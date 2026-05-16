@@ -21,25 +21,57 @@ export default function Login() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data, error: signInError } = await supabase.auth.signInWithPassword(
+      {
+        email,
+        password,
+      },
+    );
 
-    setLoading(false);
-
-    if (error) {
-      setError(error.message);
+    if (signInError) {
+      setLoading(false);
+      setError(signInError.message);
       return;
     }
 
-    navigate("/pos");
+    const user = data.user;
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    setLoading(false);
+
+    if (profileError) {
+      setError("Could not load user profile");
+      await supabase.auth.signOut();
+      return;
+    }
+
+    const role = profile?.role;
+
+    if (role !== "admin" && role !== "cashier") {
+      setError("No role assigned to this user");
+      await supabase.auth.signOut();
+      sessionStorage.removeItem("role");
+      return;
+    }
+
+    sessionStorage.setItem("role", role);
+
+    if (role === "admin") {
+      navigate("/inventory");
+    } else {
+      navigate("/pos");
+    }
   };
 
   return (
     <div className="login-container">
       <div className="login-card">
-        <h2>POS System</h2>
+        <h2>PanindaPOS</h2>
         <p>Sign in to continue</p>
 
         <input

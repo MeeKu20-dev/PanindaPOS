@@ -1,34 +1,41 @@
+import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import { FaMoneyBillWave } from "react-icons/fa";
-
-// import { useMemo } from "react";
+import { supabase } from "../lib/supabase";
 import "./Reports.css";
 
 export default function Reports() {
-  // SAMPLE DATA (replace later with real POS data)
+  const [transactions, setTransactions] = useState([]);
 
-  const transactions = [
-    {
-      date: "2026-05-01",
-      items: ["Coke", "Bread"],
-      total: 25,
-    },
-    {
-      date: "2026-05-02",
-      items: ["Noodles"],
-      total: 12,
-    },
-  ];
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .order("created_at", { ascending: false });
 
+      if (error) {
+        console.log("Fetch error:", error);
+        return;
+      }
+
+      setTransactions(data || []);
+    };
+
+    fetchTransactions();
+  }, []);
+
+  // MONTHLY SALES
   const monthlySales = transactions
     .filter((t) => {
-      const d = new Date(t.date);
+      const d = new Date(t.created_at);
+
       return (
         d.getMonth() === new Date().getMonth() &&
         d.getFullYear() === new Date().getFullYear()
       );
     })
-    .reduce((sum, t) => sum + t.total, 0);
+    .reduce((sum, t) => sum + Number(t.total), 0);
 
   return (
     <Layout>
@@ -49,7 +56,7 @@ export default function Reports() {
 
         {/* DASHBOARD GRID */}
         <div className="reports-grid">
-          {/* LEFT: TRANSACTIONS */}
+          {/* TRANSACTION HISTORY */}
           <div className="history-card">
             <h3>Transaction History</h3>
 
@@ -57,39 +64,53 @@ export default function Reports() {
               <thead>
                 <tr>
                   <th>Date</th>
-                  <th>Items</th>
-                  <th>Qty</th>
+                  <th>Payment</th>
+                  <th>Paid</th>
+                  <th>Change</th>
                   <th>Total</th>
                 </tr>
               </thead>
 
               <tbody>
-                {transactions.map((t, i) => (
-                  <tr key={i}>
-                    <td>{t.date}</td>
-                    <td>{t.items.join(", ")}</td>
-                    <td>{t.items.length}</td>
-                    <td>₱{t.total}</td>
+                {transactions.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" style={{ textAlign: "center" }}>
+                      No transactions yet
+                    </td>
                   </tr>
-                ))}
+                ) : (
+                  transactions.map((t) => (
+                    <tr key={t.id}>
+                      <td>{new Date(t.created_at).toLocaleString()}</td>
+
+                      <td>{t.payment_method}</td>
+
+                      <td>₱{Number(t.amount_paid)}</td>
+
+                      <td>₱{Number(t.change)}</td>
+
+                      <td>₱{Number(t.total)}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
 
-          {/* RIGHT: LOW STOCKS */}
+          {/* LOW STOCK (STATIC FOR NOW) */}
           <div className="lowstock-card">
             <h3>Low Stocks</h3>
 
             <ul>
-              {[
-                { name: "Coke", stock: 5 },
-                { name: "Bread", stock: 3 },
-              ].map((item, i) => (
-                <li key={i}>
-                  <span>{item.name}</span>
-                  <span className="low">{item.stock} left</span>
-                </li>
-              ))}
+              <li>
+                <span>Coke</span>
+                <span className="low">5 left</span>
+              </li>
+
+              <li>
+                <span>Bread</span>
+                <span className="low">3 left</span>
+              </li>
             </ul>
           </div>
         </div>

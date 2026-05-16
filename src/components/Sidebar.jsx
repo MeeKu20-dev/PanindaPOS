@@ -1,45 +1,38 @@
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
+import { getCurrentUserRole } from "../lib/auth";
 import "./Sidebar.css";
 
 export default function Sidebar() {
   const navigate = useNavigate();
 
-  const location = useLocation();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [role, setRole] = useState(() => sessionStorage.getItem("role"));
 
-  const [showModal, setShowModal] = useState(false);
-  const [password, setPassword] = useState("");
-  const [unlocked, setUnlocked] = useState(false);
+  useEffect(() => {
+    const loadRole = async () => {
+      const userRole = await getCurrentUserRole();
+      if (userRole) {
+        setRole(userRole);
+        sessionStorage.setItem("role", userRole);
+      }
+    };
 
-  // HANDLE INVENTORY CLICK
-  const handleInventoryClick = () => {
-    // If already inside inventory → do nothing
-    if (location.pathname === "/inventory") return;
+    loadRole();
+  }, []);
 
-    if (unlocked) {
-      navigate("/inventory");
-    } else {
-      setShowModal(true);
-    }
-  };
-
-  // CHECK PASSWORD
-  const handleUnlock = () => {
-    if (password === "1234") {
-      setUnlocked(true);
-      setShowModal(false);
-      setPassword("");
-      navigate("/inventory");
-    } else {
-      alert("Incorrect password");
-    }
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    sessionStorage.removeItem("role");
+    setRole(null);
+    navigate("/");
   };
 
   return (
     <>
       <div className="navigation">
         <ul>
-          {/* HEADER */}
           <li className="nav-header">
             <div className="header-content">
               <span className="logo">🛍️</span>
@@ -47,52 +40,65 @@ export default function Sidebar() {
             </div>
           </li>
 
-          {/* POS */}
-          <li>
-            <NavLink to="/pos" className="menu-item">
-              <span className="icon">💵</span>
-              <span className="title">Point of Sales</span>
-            </NavLink>
-          </li>
+          {(role === "cashier" || role === "admin") && (
+            <>
+              <li>
+                <NavLink to="/pos" className="menu-item">
+                  <span className="icon">💵</span>
+                  <span className="title">Point of Sales</span>
+                </NavLink>
+              </li>
 
-          {/* INVENTORY (PROTECTED) */}
+              <li>
+                <NavLink to="/reports" className="menu-item">
+                  <span className="icon">📊</span>
+                  <span className="title">Reports</span>
+                </NavLink>
+              </li>
+            </>
+          )}
+
+          {role === "admin" && (
+            <>
+              <li>
+                <NavLink to="/inventory" className="menu-item">
+                  <span className="icon">📦</span>
+                  <span className="title">Inventory</span>
+                </NavLink>
+              </li>
+            </>
+          )}
+
           <li
-            onClick={handleInventoryClick}
-            className={`menu-item ${
-              location.pathname === "/inventory" ? "active" : ""
-            }`}
+            onClick={() => setShowLogoutConfirm(true)}
+            className="menu-item logout-item"
           >
-            <span className="icon">📦</span>
-            <span className="title">Inventory</span>
-          </li>
-
-          {/* REPORTS */}
-          <li>
-            <NavLink to="/reports" className="menu-item">
-              <span className="icon">📊</span>
-              <span className="title">Reports</span>
-            </NavLink>
+            <span className="icon">⬅️</span>
+            <span className="title">Sign Out</span>
           </li>
         </ul>
       </div>
 
-      {/* MODAL */}
-      {showModal && (
+      {showLogoutConfirm && (
         <div className="modal-overlay">
           <div className="modal">
-            <h3>Inventory Access</h3>
-
-            <input
-              type="password"
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <h3>Confirm Sign Out</h3>
+            <p>Are you sure you want to log out?</p>
 
             <div className="modal-actions">
-              <button onClick={() => setShowModal(false)}>Cancel</button>
+              <button onClick={() => setShowLogoutConfirm(false)}>
+                Cancel
+              </button>
 
-              <button onClick={handleUnlock}>Enter</button>
+              <button
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  handleSignOut();
+                }}
+                style={{ background: "#d32f2f", color: "white" }}
+              >
+                Sign Out
+              </button>
             </div>
           </div>
         </div>
