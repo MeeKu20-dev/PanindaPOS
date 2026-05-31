@@ -42,6 +42,7 @@ export default function Inventory() {
         quantity: item.quantity,
         unitPrice: item.unit_price,
         sellingPrice: item.selling_price,
+        earningPerItem: Number(item.selling_price) - Number(item.unit_price),
         category: item.category,
       }));
 
@@ -141,6 +142,7 @@ export default function Inventory() {
       quantity: item.quantity,
       unitPrice: item.unit_price,
       sellingPrice: item.selling_price,
+      earningPerItem: item.selling_price - item.unit_price,
       category: item.category,
     }));
 
@@ -177,6 +179,7 @@ export default function Inventory() {
       quantity: item.quantity,
       unitPrice: item.unit_price,
       sellingPrice: item.selling_price,
+      earningPerItem: item.selling_price - item.unit_price,
       category: item.category,
     }));
 
@@ -262,8 +265,9 @@ export default function Inventory() {
               <th>Category</th>
               <th>Unit Price</th>
               <th>Selling Price</th>
+              <th>Earning / Item</th>
               <th>Stock</th>
-              <th>Status</th>
+
               <th>Actions</th>
             </tr>
           </thead>
@@ -275,11 +279,10 @@ export default function Inventory() {
                 <td>{p.category}</td>
                 <td>₱{p.unitPrice}</td>
                 <td>₱{p.sellingPrice}</td>
-                <td>{p.quantity}</td>
-
-                <td className={p.quantity > 20 ? "available" : "low"}>
-                  {p.quantity > 20 ? "Available" : "Low Stock"}
+                <td style={{ color: "#2e7d32", fontWeight: "bold" }}>
+                  ₱{p.earningPerItem}
                 </td>
+                <td>{p.quantity}</td>
 
                 <td>
                   <button className="edit-btn" onClick={() => handleEdit(p)}>

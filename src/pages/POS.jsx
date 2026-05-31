@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import { supabase } from "../lib/supabase";
 import "./POS.css";
 
@@ -14,6 +13,9 @@ export default function POS() {
   const [cart, setCart] = useState([]);
 
   const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [amountError, setAmountError] = useState("");
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()),
@@ -24,9 +26,11 @@ export default function POS() {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
 
+      if (!userId) return;
+
       const { data } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, display_name")
         .eq("id", userId)
         .single();
 
@@ -44,6 +48,7 @@ export default function POS() {
         id: item.id,
         name: item.product_name,
         price: item.selling_price,
+        unitPrice: item.unit_price,
         stock: item.quantity,
         category: item.category,
       }));
@@ -73,9 +78,11 @@ export default function POS() {
   };
 
   const saveTransaction = async () => {
+    setLoading(true);
+
     const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
-    const { data: trxData } = await supabase
+    const { data: trxData, error } = await supabase
       .from("transactions")
       .insert([
         {
@@ -85,28 +92,82 @@ export default function POS() {
           change: Number(amount) - total,
           created_by: profile?.id,
           created_by_name: profile?.display_name,
-          created_by_role: profile?.role,
+          created_at: new Date().toISOString(),
         },
       ])
       .select()
       .single();
 
-    const transactionItems = cart.map((item) => ({
-      transaction_id: trxData.id,
-      product_name: item.name,
-      price: item.price,
-      quantity: item.qty,
-    }));
+    if (error || !trxData) {
+      console.log("TRANSACTION ERROR:", error);
+      setLoading(false);
+      return;
+    }
+
+    const transactionItems = cart.map((item) => {
+      const earningsPerItem = (item.price - item.unitPrice) * item.qty;
+
+      return {
+        transaction_id: trxData.id,
+        product_name: item.name,
+        price: item.price,
+        quantity: item.qty,
+        earning_per_item: item.price - item.unitPrice,
+        total_earning: earningsPerItem,
+        status: "Succeeded",
+      };
+    });
 
     await supabase.from("transaction_items").insert(transactionItems);
+
+    for (const item of cart) {
+      const product = products.find((p) => p.id === item.id);
+      if (!product) continue;
+
+      await supabase
+        .from("products")
+        .update({ quantity: product.stock - item.qty })
+        .eq("id", item.id);
+    }
+
+    setProducts((prev) =>
+      prev.map((p) => {
+        const sold = cart.find((c) => c.id === p.id);
+        if (!sold) return p;
+
+        return {
+          ...p,
+          stock: p.stock - sold.qty,
+        };
+      }),
+    );
 
     setCart([]);
     setAmount("");
     setChange(Number(amount) - total);
-    setShowConfirm(false);
+
+    setLoading(false);
+    setSuccess(true);
+
+    setTimeout(() => {
+      setSuccess(false);
+      setShowConfirm(false);
+    }, 1500);
   };
 
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+
+  const decreaseQty = (id) => {
+    setCart(
+      cart
+        .map((item) => (item.id === id ? { ...item, qty: item.qty - 1 } : item))
+        .filter((item) => item.qty > 0),
+    );
+  };
+
+  const removeFromCart = (id) => {
+    setCart(cart.filter((item) => item.id !== id));
+  };
 
   return (
     <div className="pos-container">
@@ -128,6 +189,7 @@ export default function POS() {
             >
               <h3>{p.name}</h3>
               <p>₱{p.price}</p>
+              <small>Stock: {p.stock}</small>
             </div>
           ))}
         </div>
@@ -142,9 +204,29 @@ export default function POS() {
           ) : (
             cart.map((item) => (
               <div key={item.id} className="cart-item">
-                <span>{item.name}</span>
-                <span>x{item.qty}</span>
-                <span>₱{item.price * item.qty}</span>
+                <div className="cart-info">
+                  <span className="cart-name">{item.name}</span>
+
+                  <span>x{item.qty}</span>
+
+                  <span className="cart-price">₱{item.price * item.qty}</span>
+                </div>
+
+                <div className="cart-actions">
+                  <button
+                    className="decrease-btn"
+                    onClick={() => decreaseQty(item.id)}
+                  >
+                    -
+                  </button>
+
+                  <button
+                    className="remove-btn"
+                    onClick={() => removeFromCart(item.id)}
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
             ))
           )}
@@ -160,6 +242,12 @@ export default function POS() {
             onChange={(e) => setAmount(e.target.value)}
             className="checkout-input"
           />
+
+          {amountError && (
+            <p style={{ color: "red", fontSize: "13px", marginTop: "5px" }}>
+              {amountError}
+            </p>
+          )}
 
           <select
             value={paymentMethod}
@@ -178,13 +266,30 @@ export default function POS() {
             className="checkout-btn"
             disabled={cart.length === 0}
             onClick={() => {
-              if (!amount) return;
+              setAmountError("");
 
-              const calculatedChange = Number(amount) - total;
+              if (cart.length === 0) {
+                setAmountError(
+                  "No items selected. Please add products to cart.",
+                );
+                return;
+              }
 
-              if (calculatedChange < 0) return;
+              if (!amount) {
+                setAmountError("Please enter payment amount");
+                return;
+              }
 
-              setChange(calculatedChange);
+              const calc = Number(amount) - total;
+
+              if (calc < 0) {
+                setAmountError(
+                  "Insufficient amount. Please enter enough payment.",
+                );
+                return;
+              }
+
+              setChange(calc);
               setShowConfirm(true);
             }}
           >
@@ -196,13 +301,24 @@ export default function POS() {
       {showConfirm && (
         <div className="modal-overlay">
           <div className="confirm-modal">
-            <h2>Confirm Checkout</h2>
+            {loading ? (
+              <>
+                <h2>Processing...</h2>
+              </>
+            ) : success ? (
+              <>
+                <h2>Transaction Successful ✅</h2>
+              </>
+            ) : (
+              <>
+                <h2>Confirm Checkout</h2>
 
-            <div className="modal-actions">
-              <button onClick={() => setShowConfirm(false)}>Cancel</button>
-
-              <button onClick={saveTransaction}>Confirm</button>
-            </div>
+                <div className="modal-actions">
+                  <button onClick={() => setShowConfirm(false)}>Cancel</button>
+                  <button onClick={saveTransaction}>Confirm</button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

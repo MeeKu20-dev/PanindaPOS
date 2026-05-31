@@ -1,130 +1,317 @@
 /* PAGE */
 .reports-container {
-  padding: 25px;
-  background: #f5f7f9;
+  padding: 30px;
+  background: #f4f6f8;
   min-height: 100vh;
+  font-family: Arial, sans-serif;
 }
 
 /* TITLE */
 .reports-container h2 {
+  margin-bottom: 25px;
+  font-size: 28px;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.reports-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
 }
 
-/* GRID LAYOUT */
-.reports-grid {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+.report-filter {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-/* CARD */
+.report-filter:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.report-date {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-weight: 600;
+}
+
+.report-date:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+/* TOP CARD */
 .report-card {
-  flex: 1;
-  min-width: 250px;
-  background: #ffffff; /* 👈 white */
-  padding: 25px;
-  border-radius: 16px;
-
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  border: 1px solid #eef2f7;
+  min-width: 220px;
+  transition: 0.2s ease;
 }
 
-/* HOVER */
 .report-card:hover {
   transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+}
+
+.report-card svg {
+  font-size: 40px;
+  color: #22c55e;
+}
+
+.report-card h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.report-cards {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
 }
 
 /* CARD */
-.report-card {
+.report-card.modern {
+  flex: 1;
+  min-width: 260px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 20px;
 
-  background: #ffffff;
-  padding: 20px;
+  padding: 18px;
   border-radius: 16px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 
-  width: 280px;
-  transition: 0.2s;
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  border: 1px solid #eef2f7;
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  transition: 0.2s ease;
 }
 
-/* HOVER */
-.report-card:hover {
-  transform: translateY(-2px);
+.report-card.modern:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
 }
 
-/* LEFT ICON */
-/* LEFT ICON (no background) */
-.card-left {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* ICON STYLE */
-.card-left svg {
-  font-size: 50px; /* slightly bigger since no container */
-  color: #2e7d32;
-}
-
-/* RIGHT CONTENT */
-.card-right h3 {
+/* LEFT SIDE */
+.report-left h2 {
   margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.report-left .label {
+  margin: 4px 0;
   font-size: 14px;
-  color: #666;
+  font-weight: 600;
+  color: #4b5563;
 }
 
-/* AMOUNT */
+.report-left .date {
+  font-size: 15px;
+  color: #9ca3af;
+}
+
+/* RIGHT ICON */
+.report-right {
+  font-size: 34px;
+  color: #22c55e;
+}
+
+/* PROFIT COLOR DIFFERENT */
+.report-card.modern.profit .report-right {
+  color: #16a34a;
+}
+
+.sub-label {
+  margin: 2px 0;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
 .amount {
-  font-size: 26px;
-  font-weight: 700;
-  margin-top: 5px;
-  color: #2e7d32;
+  font-size: 18px;
+  font-weight: 800;
+  color: #16a34a;
 }
 
-/* GRID LAYOUT */
+/* GRID */
 .reports-grid {
   display: flex;
-  gap: 20px;
-  margin-top: 20px;
+  gap: 25px;
+  margin-top: 25px;
   align-items: flex-start;
 }
 
-/* LEFT (HISTORY) */
+/* TRANSACTION HISTORY */
 .history-card {
-  flex: 2;
+  flex: 3;
   background: #fff;
-  padding: 20px;
+  padding: 25px;
   border-radius: 16px;
+
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  overflow-x: auto;
 }
 
-/* RIGHT (LOW STOCKS) */
-.lowstock-card {
-  flex: 1;
-  background: #fff;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+.history-card h3 {
+  margin-bottom: 18px;
+  font-size: 20px;
+  font-weight: 700;
 }
 
-/* LOW STOCK LIST */
-.lowstock-card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.lowstock-card li {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
+/* TABLE */
+.history-card th {
+  text-align: left;
+  font-size: 14px;
+  color: #6b7280;
+  padding: 14px;
   border-bottom: 1px solid #eee;
 }
 
-/* LOW STOCK COLOR */
+.history-card td {
+  padding: 16px 14px;
+  font-size: 15px;
+  color: #111827;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+/* ROW HOVER */
+.history-card tr:hover {
+  background: #f9fafb;
+}
+
+/* LOW STOCK CARD */
+.lowstock-card {
+  flex: 1;
+  background: #fff;
+  padding: 25px;
+  border-radius: 16px;
+
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.lowstock-card h3 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* LIST */
+.lowstock-card li {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 15px;
+}
+
 .low {
-  color: #d32f2f;
+  color: #dc2626;
+  font-weight: 700;
+}
+
+/* TABLE */
+.history-card table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* HEADER */
+.history-card th {
+  text-align: left;
+  font-size: 16px;
+  font-weight: 700;
+  color: #4b5563;
+  padding: 16px 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* ROWS */
+.history-card td {
+  padding: 18px 14px;
+  font-size: 17px;
+  color: #111827;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+/* ROW HOVER */
+.history-card tr:hover {
+  background: #f9fafb;
+}
+
+.table-wrapper {
+  max-height: 450px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.table-wrapper thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+}
+
+/* STATUS CONTAINER */
+.status-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+/* STATUS TEXT */
+.status {
   font-weight: bold;
+  font-size: 13px;
+}
+
+.status.sold {
+  color: #2ecc71; /* green */
+}
+
+.status.returned {
+  color: #e74c3c; /* red */
+}
+
+/* RETURN BUTTON */
+.return-btn {
+  padding: 5px 10px;
+  font-size: 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background: #e74c3c;
+  color: white;
+  transition: 0.2s ease;
+}
+
+.return-btn:hover {
+  background: #c0392b;
+}
+
+/* DISABLED STATE */
+.return-btn.disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }

@@ -231,3 +231,9 @@ tr:hover {
   margin-top: 4px;
   margin-bottom: 10px;
 }
+
+.inventory-card table th,
+.inventory-card table td {
+  text-align: center;
+  vertical-align: middle;
+}
